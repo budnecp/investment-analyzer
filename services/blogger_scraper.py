@@ -1,8 +1,9 @@
 """
 博主/分析师观点爬取服务
-从 gold-eagle.com 等来源爬取黄金分析文章
+从 Gold-Eagle、Seeking Alpha、Financial Post 等来源爬取黄金分析文章
 """
 import pandas as pd
+import re
 import streamlit as st
 from config import BLOGGER_SOURCES, POSITIVE_KEYWORDS, NEGATIVE_KEYWORDS
 
@@ -28,6 +29,13 @@ def _simple_sentiment(text: str) -> str:
         return "中性"
 
 
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
+
+
 def _scrape_gold_eagle() -> list:
     """爬取 gold-eagle.com 的黄金分析文章"""
     if not HAS_SCRAPING:
@@ -36,120 +44,196 @@ def _scrape_gold_eagle() -> list:
     articles = []
     urls = [
         "https://www.gold-eagle.com/article/gold",
-        "https://www.gold-eagle.com/article/silver",
     ]
-
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    }
 
     for url in urls:
         try:
-            resp = requests.get(url, headers=headers, timeout=15)
+            resp = requests.get(url, headers=_HEADERS, timeout=15)
             resp.raise_for_status()
             soup = BeautifulSoup(resp.text, "lxml")
 
-            # 尝试多种选择器
-            items = soup.select("div.views-row") or soup.select("article") or soup.select("div.node")
+            # 新版 gold-eagle 使用 div.view-field-content
+            items = soup.select("div.view-field-content")
 
             for item in items[:10]:
                 try:
-                    # 标题
-                    title_el = item.select_one("h2 a, h3 a, .field-name-title a, .title a")
-                    title = title_el.get_text(strip=True) if title_el else ""
-
-                    # 链接
-                    link = ""
-                    if title_el and title_el.get("href"):
-                        href = title_el.get("href", "")
-                        if href.startswith("/"):
-                            link = "https://www.gold-eagle.com" + href
-                        else:
-                            link = href
-
-                    # 摘要
-                    summary_el = item.select_one(".field-name-body, .field-type-text-with-summary, .summary, p")
-                    summary = summary_el.get_text(strip=True)[:200] if summary_el else title
-
-                    # 作者
-                    author_el = item.select_one(".field-name-field-article-author a, .username, .author a, .field-name-uid a")
-                    author = author_el.get_text(strip=True) if author_el else "Gold-Eagle Analyst"
-
-                    # 日期
-                    date_el = item.select_one(".field-name-post-date, .date-display-single, time, .post-date")
-                    date_str = date_el.get_text(strip=True) if date_el else ""
-
+                    # 标题 & 链接 - 在 item 内找第一个 a
+                    title_el = item.find("a")
+                    if not title_el:
+                        continue
+                    title = title_el.get_text(strip=True)
                     if not title:
                         continue
 
-                    sentiment = _simple_sentiment(title + " " + summary)
+                    href = title_el.get("href", "")
+                    if href.startswith("/"):
+                        link = "https://www.gold-eagle.com" + href
+                    elif href.startswith("http"):
+                        link = href
+                    else:
+                        link = ""
+
+                    # 作者 - 找含 author 的 div
+                    author_el = item.select_one(".content_author, .views-field-field-author")
+                    author = ""
+                    if author_el:
+                        author = author_el.get_text(strip=True)
+                        author = author.replace("By", "").replace("by", "").strip()
+                    if not author:
+                        # 尝试第二个链接（通常是作者页）
+                        all_links = item.find_all("a")
+                        if len(all_links) >= 2:
+                            author = all_links[1].get_text(strip=True)
+
+                    # 日期 - 暂无，留空
+                    date_str = ""
+
+                    # 摘要 - 用标题
+                    summary = title
+
+                    sentiment = _simple_sentiment(title)
 
                     articles.append({
-                        "博主": author,
+                        "博主": author or "Gold-Eagle Analyst",
                         "平台": "Gold-Eagle",
-                        "观点": summary if summary else title,
+                        "观点": summary,
                         "标题": title,
                         "链接": link,
-                        "时间": date_str,
+                        "时间": date_str or "-",
                         "方向": sentiment,
                     })
                 except Exception:
                     continue
 
-        except Exception as e:
+        except Exception:
             continue
 
     return articles
 
 
-def _scrape_investing_com() -> list:
-    """爬取 investing.com 的黄金分析文章"""
+def _scrape_seeking_alpha() -> list:
+    """爬取 Seeking Alpha 的黄金新闻"""
     if not HAS_SCRAPING:
         return []
 
     articles = []
-    url = "https://www.investing.com/news/commodities-news/gold"
-
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9",
-    }
+    url = "https://seekingalpha.com/market-news/gold"
 
     try:
-        resp = requests.get(url, headers=headers, timeout=15)
+        resp = requests.get(url, headers=_HEADERS, timeout=15)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "lxml")
 
-        items = soup.select("article.articleItem") or soup.select("div.largeTitle article")
+        items = soup.select("article")
 
-        for item in items[:8]:
+        for item in items[:12]:
             try:
-                title_el = item.select_one("a.title, .articleTitle a")
-                title = title_el.get_text(strip=True) if title_el else ""
-                link = title_el.get("href", "") if title_el else ""
-                if link and not link.startswith("http"):
-                    link = "https://www.investing.com" + link
-
-                # 作者
-                author_el = item.select_one(".articleDetails span, .authorName")
-                author = author_el.get_text(strip=True).replace("By ", "") if author_el else "Investing.com"
-
-                # 日期
-                date_el = item.select_one(".articleDetails span:nth-child(2), .date")
-                date_str = date_el.get_text(strip=True) if date_el else ""
-
+                # 标题
+                h3 = item.find("h3")
+                if not h3:
+                    continue
+                title = h3.get_text(strip=True)
                 if not title:
                     continue
+
+                # 链接
+                link = ""
+                a_tag = h3.find("a") or item.find("a")
+                if a_tag:
+                    href = a_tag.get("href", "")
+                    if href.startswith("/"):
+                        link = "https://seekingalpha.com" + href.split("#")[0]
+                    elif href.startswith("http"):
+                        link = href
+
+                # 日期 - 在 article 的文本里找
+                date_str = ""
+                time_el = item.find("time")
+                if time_el:
+                    date_str = time_el.get_text(strip=True)
+                else:
+                    # 寻找类似 "May 08" 的日期文本
+                    text_content = item.get_text()
+                    date_match = re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}", text_content)
+                    if date_match:
+                        date_str = date_match.group()
 
                 sentiment = _simple_sentiment(title)
 
                 articles.append({
-                    "博主": author,
-                    "平台": "Investing.com",
+                    "博主": "Seeking Alpha",
+                    "平台": "Seeking Alpha",
                     "观点": title,
                     "标题": title,
                     "链接": link,
-                    "时间": date_str,
+                    "时间": date_str or "-",
+                    "方向": sentiment,
+                })
+            except Exception:
+                continue
+
+    except Exception:
+        pass
+
+    return articles
+
+
+def _scrape_financial_post() -> list:
+    """爬取 Financial Post 的黄金新闻"""
+    if not HAS_SCRAPING:
+        return []
+
+    articles = []
+    url = "https://financialpost.com/category/commodities/gold"
+
+    try:
+        resp = requests.get(url, headers=_HEADERS, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "lxml")
+
+        items = soup.select("article")
+
+        for item in items[:10]:
+            try:
+                # 标题
+                h = item.find(["h2", "h3", "h4"])
+                if not h:
+                    continue
+                title = h.get_text(strip=True)
+                if not title:
+                    continue
+
+                # 链接
+                link = ""
+                a_tag = h.find("a")
+                if a_tag:
+                    href = a_tag.get("href", "")
+                    if href.startswith("/"):
+                        link = "https://financialpost.com" + href
+                    elif href.startswith("http"):
+                        link = href
+
+                # 摘要
+                summary_el = item.find("p")
+                summary = summary_el.get_text(strip=True)[:200] if summary_el else title
+
+                # 日期
+                date_str = ""
+                time_el = item.find("time")
+                if time_el:
+                    date_str = time_el.get("datetime", "") or time_el.get_text(strip=True)
+                    if len(date_str) > 16:
+                        date_str = date_str[:16]
+
+                sentiment = _simple_sentiment(title + " " + summary)
+
+                articles.append({
+                    "博主": "Financial Post",
+                    "平台": "Financial Post",
+                    "观点": summary if summary else title,
+                    "标题": title,
+                    "链接": link,
+                    "时间": date_str or "-",
                     "方向": sentiment,
                 })
             except Exception:
@@ -175,10 +259,17 @@ def get_all_blogger_views() -> pd.DataFrame:
     except Exception:
         pass
 
-    # 爬取 Investing.com
+    # 爬取 Seeking Alpha
     try:
-        investing_views = _scrape_investing_com()
-        all_views.extend(investing_views)
+        sa_views = _scrape_seeking_alpha()
+        all_views.extend(sa_views)
+    except Exception:
+        pass
+
+    # 爬取 Financial Post
+    try:
+        fp_views = _scrape_financial_post()
+        all_views.extend(fp_views)
     except Exception:
         pass
 
