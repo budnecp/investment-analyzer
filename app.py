@@ -24,7 +24,7 @@ button[kind="header"] { display: none !important; }
     background: #f8f9fa;
 }
 
-/* 卡片样式 - 白色背景 + 圆角12px + box-shadow */
+/* 卡片样式 */
 .card {
     background: #ffffff;
     border-radius: 12px;
@@ -42,31 +42,13 @@ button[kind="header"] { display: none !important; }
     border-color: #4facfe;
 }
 
-/* 首页头部渐变 - 淡蓝到淡紫 */
+/* 首页头部渐变 */
 .hero-header {
     background: linear-gradient(135deg, #4facfe 0%, #667eea 100%);
     border-radius: 20px;
     padding: 48px 40px;
     margin-bottom: 32px;
     color: white;
-}
-
-/* 返回按钮 - 渐变色 */
-.back-btn {
-    background: linear-gradient(135deg, #4facfe, #667eea);
-    color: white !important;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 24px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-block;
-    margin-bottom: 16px;
-}
-.back-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
 }
 
 /* 指标卡片 */
@@ -87,18 +69,9 @@ button[kind="header"] { display: none !important; }
     font-size: 13px;
     font-weight: 600;
 }
-.tag-bullish {
-    background: #dcfce7;
-    color: #16a34a;
-}
-.tag-bearish {
-    background: #fee2e2;
-    color: #dc2626;
-}
-.tag-neutral {
-    background: #f0f0f0;
-    color: #6b7280;
-}
+.tag-bullish { background: #dcfce7; color: #16a34a; }
+.tag-bearish { background: #fee2e2; color: #dc2626; }
+.tag-neutral { background: #f0f0f0; color: #6b7280; }
 
 /* 新闻条目 */
 .news-item {
@@ -124,24 +97,28 @@ button[kind="header"] { display: none !important; }
 }
 
 /* 分隔线 */
-hr {
-    border: none;
-    border-top: 1px solid #eef0f4;
-    margin: 24px 0;
-}
+hr { border: none; border-top: 1px solid #eef0f4; margin: 24px 0; }
 
 /* stMetric 自定义 */
-[data-testid="stMetricValue"] {
-    font-size: 1.5rem !important;
-}
+[data-testid="stMetricValue"] { font-size: 1.5rem !important; }
 
 /* 字体层次 */
 h1 { font-size: 24px !important; font-weight: 800 !important; color: #1e293b !important; }
 h2 { font-size: 18px !important; font-weight: 700 !important; color: #1e293b !important; }
 h3 { font-size: 16px !important; font-weight: 600 !important; color: #1e293b !important; }
-p, span, div { font-size: 14px; color: #334155; }
 </style>
 """, unsafe_allow_html=True)
+
+# 初始化 session_state
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+
+
+def navigate(page: str):
+    """页面导航函数"""
+    st.session_state.page = page
+    st.rerun()
+
 
 # 导入视图
 from views.home import render_home
@@ -161,19 +138,9 @@ PAGES = {
     "prediction": render_prediction,
 }
 
-# 初始化 session_state
-if "page" not in st.session_state:
-    st.session_state.page = "home"
-
-
-def navigate(page: str):
-    """页面导航函数"""
-    st.session_state.page = page
-    st.rerun()
-
-
 # 将导航函数注册到 session_state，供视图调用
-st.session_state.navigate = navigate
+# 注意：用 wrapper 避免直接存储函数引用导致的 pickle 问题
+st.session_state._navigate = navigate
 
 # 渲染当前页面
 current_page = st.session_state.page
