@@ -36,7 +36,8 @@ def render_home():
         </div>
         """, unsafe_allow_html=True)
         if st.button("📊 进入行情总览", key="nav_market", use_container_width=True):
-            st.session_state._navigate("market_overview")
+            st.session_state.page = "market_overview"
+            st.rerun()
 
     with col2:
         st.markdown("""
@@ -49,7 +50,8 @@ def render_home():
         </div>
         """, unsafe_allow_html=True)
         if st.button("📈 进入技术分析", key="nav_tech", use_container_width=True):
-            st.session_state._navigate("technical")
+            st.session_state.page = "technical"
+            st.rerun()
 
     with col3:
         st.markdown("""
@@ -62,7 +64,8 @@ def render_home():
         </div>
         """, unsafe_allow_html=True)
         if st.button("💰 进入资金面", key="nav_fund", use_container_width=True):
-            st.session_state._navigate("fund_flow")
+            st.session_state.page = "fund_flow"
+            st.rerun()
 
     # 第二行：2个卡片 + 1个空列
     col4, col5, col6 = st.columns(3, gap="large")
@@ -78,7 +81,8 @@ def render_home():
         </div>
         """, unsafe_allow_html=True)
         if st.button("📰 进入消息面", key="nav_news", use_container_width=True):
-            st.session_state._navigate("news")
+            st.session_state.page = "news"
+            st.rerun()
 
     with col5:
         st.markdown("""
@@ -91,7 +95,8 @@ def render_home():
         </div>
         """, unsafe_allow_html=True)
         if st.button("🎯 进入投资预测", key="nav_pred", use_container_width=True):
-            st.session_state._navigate("prediction")
+            st.session_state.page = "prediction"
+            st.rerun()
 
     # 底部信息
     st.markdown("---")
@@ -101,4 +106,4 @@ def render_home():
     with footer_cols[1]:
         st.caption("🔧 技术栈：Streamlit + Plotly + ta")
     with footer_cols[2]:
-        st.caption("⚠️ 仅供学习参考，不构成投资建�
+        st.caption("⚠️ 仅供学习参考，不构成投资建议")
