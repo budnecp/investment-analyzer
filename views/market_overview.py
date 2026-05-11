@@ -12,7 +12,7 @@ def render_market_overview():
     """渲染行情总览页"""
     # 返回首页按钮
     if st.button("← 返回首页", key="back_home_market"):
-        st.session_state._navigate("home")
+        st.session_state.page = "home"; st.rerun()
 
     st.title("📊 行情总览")
     st.markdown("---")
