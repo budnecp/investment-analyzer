@@ -1,120 +1,184 @@
 """
 投资分析工具 - Streamlit 主入口
+单页面路由架构，通过 session_state 管理页面切换
 """
 import streamlit as st
-from config import APP_TITLE, APP_ICON, LAYOUT, PAGE_CONFIG
+from config import APP_TITLE, APP_ICON, PAGE_CONFIG, COLORS
 
-# 页面配置
+# 页面配置（必须在最前面）
 st.set_page_config(**PAGE_CONFIG)
 
-# 侧边栏
-with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/combo-chart.png", width=80)
-    st.title(APP_TITLE)
-    st.markdown("---")
-    st.markdown("""
-    ### 📌 功能导航
-
-    - 📊 **行情总览** — 实时报价 & K线图
-    - 📈 **技术分析** — 技术指标 & 理论分析
-    - 💰 **资金面** — 持仓量 & 资金流向
-    - 📰 **消息面** — 新闻 & 事件分析
-    - 🎯 **投资预测** — 博主观点 & 预测
-
-    ---
-    """)
-
-    st.markdown("""
-    ### ℹ️ 关于
-
-    本工具为贵金属及期货投资分析平台，
-    提供多维度价格预测能力。
-
-    **数据源：** yfinance（延迟约15分钟）
-
-    **技术栈：** Streamlit + Plotly + pandas-ta
-
-    ---
-    """)
-
-    st.caption("v0.1.0 | 仅供学习参考，不构成投资建议")
-
-# 主页内容
-st.title(f"{APP_ICON} {APP_TITLE}")
-st.markdown("---")
-
-# 欢迎区域
+# 注入全局CSS样式 - 浅色轻盈风格
 st.markdown("""
-### 👋 欢迎使用投资分析工具
+<style>
+/* 隐藏默认sidebar导航 */
+section[data-testid="stSidebarNav"] { display: none !important; }
+section[data-testid="stSidebar"] { display: none !important; }
+button[kind="header"] { display: none !important; }
 
-本工具提供贵金属及期货品种的多维度分析能力，帮助你做出更明智的投资决策。
-""")
+/* 全局样式 */
+.main .block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 1400px;
+    background: #f8f9fa;
+}
 
-# 功能概览
-col1, col2, col3, col4, col5 = st.columns(5)
+/* 卡片样式 - 白色背景 + 圆角12px + box-shadow */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 28px 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #e8ecf0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    height: 100%;
+}
+.card:hover {
+    box-shadow: 0 6px 24px rgba(79,172,254,0.18);
+    transform: translateY(-4px);
+    border-color: #4facfe;
+}
 
-with col1:
-    st.markdown("""
-    <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white;'>
-        <h2>📊</h2>
-        <h4>行情总览</h4>
-        <p>实时报价<br/>K线走势</p>
-    </div>
-    """, unsafe_allow_html=True)
+/* 首页头部渐变 - 淡蓝到淡紫 */
+.hero-header {
+    background: linear-gradient(135deg, #4facfe 0%, #667eea 100%);
+    border-radius: 20px;
+    padding: 48px 40px;
+    margin-bottom: 32px;
+    color: white;
+}
 
-with col2:
-    st.markdown("""
-    <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 10px; color: white;'>
-        <h2>📈</h2>
-        <h4>技术分析</h4>
-        <p>MACD/KDJ/RSI<br/>缠论/波浪</p>
-    </div>
-    """, unsafe_allow_html=True)
+/* 返回按钮 - 渐变色 */
+.back-btn {
+    background: linear-gradient(135deg, #4facfe, #667eea);
+    color: white !important;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    margin-bottom: 16px;
+}
+.back-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
 
-with col3:
-    st.markdown("""
-    <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 10px; color: white;'>
-        <h2>💰</h2>
-        <h4>资金面</h4>
-        <p>持仓分析<br/>资金流向</p>
-    </div>
-    """, unsafe_allow_html=True)
+/* 指标卡片 */
+.indicator-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    border: 1px solid #eef0f4;
+    margin-bottom: 12px;
+}
 
-with col4:
-    st.markdown("""
-    <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); border-radius: 10px; color: white;'>
-        <h2>📰</h2>
-        <h4>消息面</h4>
-        <p>新闻聚合<br/>情感分析</p>
-    </div>
-    """, unsafe_allow_html=True)
+/* 结论标签 */
+.conclusion-tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.tag-bullish {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.tag-bearish {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.tag-neutral {
+    background: #f0f0f0;
+    color: #6b7280;
+}
 
-with col5:
-    st.markdown("""
-    <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border-radius: 10px; color: white;'>
-        <h2>🎯</h2>
-        <h4>投资预测</h4>
-        <p>博主观点<br/>综合评分</p>
-    </div>
-    """, unsafe_allow_html=True)
+/* 新闻条目 */
+.news-item {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    border: 1px solid #eef0f4;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
 
-st.markdown("---")
+/* 预测评分 */
+.score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 auto 12px;
+}
 
-# 快速入口
-st.subheader("🚀 快速开始")
-st.markdown("""
-请从左侧导航栏选择功能模块，或点击上方对应卡片进入：
+/* 分隔线 */
+hr {
+    border: none;
+    border-top: 1px solid #eef0f4;
+    margin: 24px 0;
+}
 
-1. **行情总览** → 查看贵金属实时报价和K线走势图
-2. **技术分析** → 使用MACD、KDJ、RSI等指标，或缠论/波浪理论进行分析
-3. **资金面** → 查看持仓量、资金流向等数据（开发中）
-4. **消息面** → 浏览新闻和情感分析（开发中）
-5. **投资预测** → 汇集博主观点，综合预测评分（开发中）
-""")
+/* stMetric 自定义 */
+[data-testid="stMetricValue"] {
+    font-size: 1.5rem !important;
+}
 
-# 免责声明
-st.markdown("---")
-st.caption("""
-⚠️ **免责声明**：本工具仅供学习研究使用，所有分析结果和预测均不构成投资建议。
-投资有风险，入市需谨慎。过往表现不代表未来收益，请根据自身情况独立做出投资决策。
-""")
+/* 字体层次 */
+h1 { font-size: 24px !important; font-weight: 800 !important; color: #1e293b !important; }
+h2 { font-size: 18px !important; font-weight: 700 !important; color: #1e293b !important; }
+h3 { font-size: 16px !important; font-weight: 600 !important; color: #1e293b !important; }
+p, span, div { font-size: 14px; color: #334155; }
+</style>
+""", unsafe_allow_html=True)
+
+# 导入视图
+from views.home import render_home
+from views.market_overview import render_market_overview
+from views.technical import render_technical
+from views.fund_flow import render_fund_flow
+from views.news import render_news
+from views.prediction import render_prediction
+
+# 页面路由映射
+PAGES = {
+    "home": render_home,
+    "market_overview": render_market_overview,
+    "technical": render_technical,
+    "fund_flow": render_fund_flow,
+    "news": render_news,
+    "prediction": render_prediction,
+}
+
+# 初始化 session_state
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+
+
+def navigate(page: str):
+    """页面导航函数"""
+    st.session_state.page = page
+    st.rerun()
+
+
+# 将导航函数注册到 session_state，供视图调用
+st.session_state.navigate = navigate
+
+# 渲染当前页面
+current_page = st.session_state.page
+if current_page in PAGES:
+    PAGES[current_page]()
+else:
+    st.session_state.page = "home"
+    st.rerun()
