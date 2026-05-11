@@ -11,174 +11,73 @@
 - 成交量展示
 
 ### 📈 技术分析
-- **技术指标**：MACD、KDJ、RSI、成交量
-- **均线系统**：MA5/MA10/MA20/MA60/MA120/MA250
-- **缠论分析**：分型识别、笔段划分（基础版）
-- **波浪理论**：推动浪/调整浪识别（基础版）
-- 信号汇总与多空判断
+- **MACD**：DIF/DEA/柱状图分析，金叉死叉判断，具体结论输出
+- **KDJ**：K/D/J值分析，超买超卖判断，金叉死叉检测
+- **RSI**：相对强弱指标，超买超卖区间判断
+- **均线系统**：MA5/MA10/MA20/MA60/MA120/MA250，多头/空头排列判断
+- **缠论分析**：分型识别、笔段划分，方向性判断
+- **波浪理论**：推动浪/调整浪识别，浪型状态判断
+- **信号汇总**：整体技术面判断（偏多/偏空/震荡）
 
-### 💰 资金面分析（开发中）
-- 持仓量分析
-- 资金流向
-- 多空比例
+### 💰 资金面分析
+- **量价分析**：量增价涨/量缩价涨等关系判断
+- **OBV指标**：能量潮分析，资金流向判断
+- **MFI指标**：资金流量指标，超买超卖判断
+- **量价背离检测**：顶背离/底背离预警
 
-### 📰 消息面分析（开发中）
-- 新闻聚合
-- 事件驱动分析
-- NLP情感分析
+### 📰 消息面分析
+- **新闻聚合**：从Google News、Finviz等来源爬取黄金相关新闻
+- **事件日历**：重大经济事件（FOMC、非农、CPI等）
+- **情感分析**：基于关键词的新闻正面/负面/中性判断
 
-### 🎯 投资预测（开发中）
-- 博主观点爬取
-- 综合预测评分
+### 🎯 投资预测
+- **博主观点**：从Gold-Eagle等网站爬取分析师观点
+- **综合评分**：技术面40% + 资金面25% + 消息面25% + 博主观点10%
+- **方向判断**：偏多/偏空/震荡
+- **置信度评估**：基于各维度一致性判断
 
 ## 🚀 安装与运行
 
-### 1. 克隆项目
-
-```bash
-cd 投资分析工具
-```
-
-### 2. 安装依赖
+### 1. 安装依赖
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. 运行应用
+### 2. 运行应用
 
 ```bash
 streamlit run app.py
 ```
 
-应用将在浏览器中自动打开，默认地址：`http://localhost:8501`
-
 ## 📁 项目结构
 
 ```
 投资分析工具/
-├── app.py                    # Streamlit主入口
+├── .streamlit/config.toml   # 隐藏sidebar导航
+├── app.py                    # 单页面路由入口
+├── config.py                 # 配置文件
 ├── requirements.txt          # 依赖列表
-├── config.py                 # 配置文件（品种、API参数等）
-├── pages/
-│   ├── 1_📊_行情总览.py      # 实时行情+K线
-│   ├── 2_📈_技术分析.py      # 技术指标+理论分析
-│   ├── 3_💰_资金面.py        # 资金面分析（占位）
-│   ├── 4_📰_消息面.py        # 新闻+事件分析（占位）
-│   └── 5_🎯_投资预测.py      # 博主观点+预测（占位）
-├── services/
-│   ├── market_data.py        # 行情数据获取服务
-│   ├── technical_analysis.py # 技术指标计算
-│   ├── chan_theory.py        # 缠论分析
-│   ├── elliott_wave.py       # 波浪理论
-│   ├── sentiment.py          # 情感分析（占位）
-│   └── blogger_scraper.py    # 博主观点爬取（占位）
-├── utils/
-│   └── chart_helper.py       # 图表绘制工具
-└── README.md                 # 使用说明
-```
-
-## ⚙️ 配置说明
-
-### 品种代码映射
-
-在 `config.py` 中配置品种和 yfinance 代码的映射关系：
-
-| 品种 | 代码 |
-|------|------|
-| 黄金 | GC=F |
-| 白银 | SI=F |
-| 铂金 | PL=F |
-| 原油 | CL=F |
-| 天然气 | NG=F |
-| 铜 | HG=F |
-
-更多期货代码可在 `config.py` 的 `FUTURES_SYMBOLS` 中添加。
-
-### 技术指标参数
-
-可在 `config.py` 中调整技术指标的默认参数：
-
-- MACD：快线12、慢线26、信号线9
-- KDJ：周期9
-- RSI：周期14
-- 均线：5/10/20/60/120/250
-
-### 环境变量
-
-- `NEWS_API_KEY`：新闻API密钥（消息面模块使用，可选）
-
-## 🖥️ 服务器部署
-
-### 使用 Docker 部署（推荐）
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-
-EXPOSE 8501
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
-```
-
-```bash
-docker build -t investment-tool .
-docker run -p 8501:8501 investment-tool
-```
-
-### 直接部署
-
-```bash
-# 安装依赖
-pip install -r requirements.txt
-
-# 后台运行
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
-```
-
-### 使用 systemd 服务
-
-创建 `/etc/systemd/system/investment-tool.service`：
-
-```ini
-[Unit]
-Description=Investment Analysis Tool
-After=network.target
-
-[Service]
-Type=simple
-User=your_user
-WorkingDirectory=/path/to/投资分析工具
-ExecStart=/usr/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl enable investment-tool
-sudo systemctl start investment-tool
+├── services/                 # 数据服务
+│   ├── market_data.py        # 行情数据获取
+│   ├── technical_analysis.py # 技术指标计算 + 结论生成
+│   ├── chan_theory.py        # 缠论分析 + 方向判断
+│   ├── elliott_wave.py       # 波浪理论 + 方向判断
+│   ├── fund_flow.py          # 资金面分析（OBV/MFI/量价）
+│   ├── blogger_scraper.py    # 博主观点爬取
+│   ├── news_scraper.py       # 新闻爬取
+│   └── sentiment.py          # 情感分析
+├── views/                    # 页面视图
+│   ├── home.py               # 首页（卡片导航）
+│   ├── market_overview.py    # 行情总览
+│   ├── technical.py          # 技术分析
+│   ├── fund_flow.py          # 资金面
+│   ├── news.py               # 消息面
+│   └── prediction.py         # 投资预测
+└── utils/
+    └── chart_helper.py       # 图表绘制（plotly_white主题）
 ```
 
 ## ⚠️ 免责声明
 
-本工具仅供学习研究使用，所有分析结果和预测均不构成投资建议。
-投资有风险，入市需谨慎。过往表现不代表未来收益，请根据自身情况独立做出投资决策。
-
-## 📝 开发计划
-
-- [x] 行情总览（实时报价 + K线图）
-- [x] 技术指标（MACD/KDJ/RSI/成交量）
-- [x] 均线系统
-- [x] 缠论基础分析
-- [x] 波浪理论基础分析
-- [ ] 缠论中枢识别与买卖点
-- [ ] 波浪理论进阶分析
-- [ ] 资金面分析（持仓量/资金流向）
-- [ ] 消息面分析（新闻/情感分析）
-- [ ] 博主观点爬取与预测评分
-- [ ] 服务器部署与监控
+本工具仅供学习参考，不构成任何投资建议。投资有风险，入市需谨慎。
