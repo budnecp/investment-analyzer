@@ -6,8 +6,12 @@ enableXsrfProtection = false
 [browser]
 gatherUsageStats = false
 
+[client]
+toolbarMode = "minimal"
+showSidebarNavigation = false
+
 [theme]
-primaryColor = "#FFD700"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#1A1A2E"
-textColor = "#FAFAFA"
+primaryColor = "#4facfe"
+backgroundColor = "#f8f9fa"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#1e293b"
