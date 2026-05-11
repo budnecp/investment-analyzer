@@ -109,15 +109,9 @@ h3 { font-size: 16px !important; font-weight: 600 !important; color: #1e293b !im
 </style>
 """, unsafe_allow_html=True)
 
-# 初始化 session_state
+# 初始化 session_state（只存字符串，不存函数）
 if "page" not in st.session_state:
     st.session_state.page = "home"
-
-
-def navigate(page: str):
-    """页面导航函数"""
-    st.session_state.page = page
-    st.rerun()
 
 
 # 导入视图
@@ -137,10 +131,6 @@ PAGES = {
     "news": render_news,
     "prediction": render_prediction,
 }
-
-# 将导航函数注册到 session_state，供视图调用
-# 注意：用 wrapper 避免直接存储函数引用导致的 pickle 问题
-st.session_state._navigate = navigate
 
 # 渲染当前页面
 current_page = st.session_state.page
