@@ -64,20 +64,67 @@ WAVE_MIN_SIZE = 0.03  # 最小波浪幅度比例
 
 # ==================== 博主/消息源配置 ====================
 BLOGGER_SOURCES = {
-    "当铺财经": {"platform": "抖音", "url": ""},
-    "内蒙古小顽童": {"platform": "抖音", "url": ""},
-    "百年财经": {"platform": "抖音", "url": ""},
-    "王总黄金": {"platform": "抖音", "url": ""},
     "AG Thorson": {"platform": "Gold-Eagle", "url": "https://www.gold-eagle.com/"},
+    "Gold-Eagle Analysts": {"platform": "Gold-Eagle", "url": "https://www.gold-eagle.com/"},
+    "Investing.com Contributors": {"platform": "Investing.com", "url": "https://www.investing.com/"},
 }
 
 # 新闻API（预留）
 NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "")
+
+# ==================== 预测评分权重 ====================
+PREDICTION_WEIGHTS = {
+    "技术面": 0.40,
+    "资金面": 0.25,
+    "消息面": 0.25,
+    "博主观点": 0.10,
+}
 
 # ==================== 页面配置 ====================
 PAGE_CONFIG = {
     "page_title": APP_TITLE,
     "page_icon": APP_ICON,
     "layout": LAYOUT,
-    "initial_sidebar_state": "expanded",
+    "initial_sidebar_state": "collapsed",
+}
+
+# ==================== 重大经济事件日历 ====================
+ECONOMIC_EVENTS = [
+    {"name": "非农就业数据", "frequency": "每月第一个周五", "impact": "高"},
+    {"name": "CPI消费者价格指数", "frequency": "每月中旬", "impact": "高"},
+    {"name": "PPI生产者价格指数", "frequency": "每月中旬", "impact": "中"},
+    {"name": "FOMC利率决议", "frequency": "每6-8周", "impact": "极高"},
+    {"name": "GDP数据", "frequency": "每季度", "impact": "高"},
+    {"name": "初请失业金人数", "frequency": "每周四", "impact": "中"},
+    {"name": "零售销售数据", "frequency": "每月中旬", "impact": "中"},
+    {"name": "美联储主席讲话", "frequency": "不定期", "impact": "高"},
+]
+
+# ==================== 情感分析关键词 ====================
+POSITIVE_KEYWORDS = [
+    "上涨", "看多", "利好", "突破", "新高", "反弹", "买入", "支撑", "增持",
+    "牛市", "上涨趋势", "突破新高", "金叉", "底部", "回暖", "复苏", "涨势",
+    "bullish", "rally", "surge", "gain", "support", "uptrend", "buy",
+    "rise", "breakthrough", "rebound", "positive", "soar", "climb",
+    "outperform", "upgrade", "optimistic", "strong", "growth",
+]
+
+NEGATIVE_KEYWORDS = [
+    "下跌", "看空", "利空", "破位", "新低", "回调", "卖出", "阻力", "减持",
+    "熊市", "下跌趋势", "跌破", "死叉", "顶部", "疲软", "衰退", "跌势",
+    "bearish", "decline", "drop", "loss", "resistance", "downtrend", "sell",
+    "fall", "breakdown", "correction", "negative", "slump", "crash",
+    "underperform", "downgrade", "pessimistic", "weak", "recession",
+]
+
+# ==================== UI 配色 ====================
+COLORS = {
+    "rise": "#ef5350",      # 涨 - 红（中国惯例）
+    "fall": "#26a69a",      # 跌 - 绿
+    "primary_start": "#4facfe",   # 渐变起点 - 淡蓝
+    "primary_end": "#667eea",     # 渐变终点 - 淡紫
+    "bg": "#f8f9fa",        # 浅灰背景
+    "card_bg": "#ffffff",   # 卡片白色
+    "text_primary": "#1e293b",
+    "text_secondary": "#64748b",
 }
