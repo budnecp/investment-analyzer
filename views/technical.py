@@ -28,7 +28,7 @@ def render_technical():
     """渲染技术分析页"""
     # 返回首页按钮
     if st.button("← 返回首页", key="back_home_tech"):
-        st.session_state._navigate("home")
+        st.session_state.page = "home"; st.rerun()
 
     st.title("📈 技术分析")
     st.markdown("---")
