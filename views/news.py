@@ -12,7 +12,7 @@ def render_news():
     """渲染消息面分析页"""
     # 返回首页按钮
     if st.button("← 返回首页", key="back_home_news"):
-        st.session_state._navigate("home")
+        st.session_state.page = "home"; st.rerun()
 
     st.title("📰 消息面分析")
     st.markdown("---")
