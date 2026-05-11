@@ -22,7 +22,7 @@ def render_prediction():
     """渲染投资预测页"""
     # 返回首页按钮
     if st.button("← 返回首页", key="back_home_pred"):
-        st.session_state.navigate("home")
+        st.session_state._navigate("home")
 
     st.title("🎯 投资预测")
     st.markdown("---")
@@ -107,6 +107,7 @@ def render_prediction():
     blogger_score = 50
     blogger_direction = "中性"
     blogger_confidence = "低"
+    blogger_df = pd.DataFrame()
 
     try:
         blogger_df = get_all_blogger_views()
@@ -271,7 +272,7 @@ def render_prediction():
     st.subheader("📋 博主/分析师观点")
 
     try:
-        if not blogger_df.empty:
+        if blogger_df is not None and not blogger_df.empty:
             display_cols = ["博主", "平台", "观点", "时间", "方向"]
             available_cols = [c for c in display_cols if c in blogger_df.columns]
             st.dataframe(
@@ -287,4 +288,4 @@ def render_prediction():
 
     # 底部提示
     st.markdown("---")
-    st.caption("⚠️ 以上预测基于技术指标、资金面、消息面和博主观点的加权评分，仅供参考，不构成投资建议。")
+    st.caption("⚠️ 以上预测基于技术指标、资金面、消息面和博主观点
