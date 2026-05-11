@@ -64,9 +64,9 @@ WAVE_MIN_SIZE = 0.03  # 最小波浪幅度比例
 
 # ==================== 博主/消息源配置 ====================
 BLOGGER_SOURCES = {
-    "AG Thorson": {"platform": "Gold-Eagle", "url": "https://www.gold-eagle.com/"},
-    "Gold-Eagle Analysts": {"platform": "Gold-Eagle", "url": "https://www.gold-eagle.com/"},
-    "Investing.com Contributors": {"platform": "Investing.com", "url": "https://www.investing.com/"},
+    "Gold-Eagle Analysts": {"platform": "Gold-Eagle", "url": "https://www.gold-eagle.com/article/gold"},
+    "Seeking Alpha": {"platform": "Seeking Alpha", "url": "https://seekingalpha.com/market-news/gold"},
+    "Financial Post": {"platform": "Financial Post", "url": "https://financialpost.com/category/commodities/gold"},
 }
 
 # 新闻API（预留）
