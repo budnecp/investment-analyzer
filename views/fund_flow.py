@@ -18,7 +18,7 @@ def render_fund_flow():
     """渲染资金面分析页"""
     # 返回首页按钮
     if st.button("← 返回首页", key="back_home_fund"):
-        st.session_state.navigate("home")
+        st.session_state._navigate("home")
 
     st.title("💰 资金面分析")
     st.markdown("---")
